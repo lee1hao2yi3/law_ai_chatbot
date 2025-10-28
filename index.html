@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malaysian Legal AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chat-bubble {
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .chat-bubble-user {
+            background-color: #3B82F6; /* blue-500 */
+            color: white;
+        }
+        .chat-bubble-bot {
+            background-color: #F3F4F6; /* gray-100 */
+            color: #1F2937; /* gray-800 */
+        }
+        #chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        #chat-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        #chat-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+
+    <!-- Disclaimer Modal -->
+    <div id="disclaimer-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 md:p-8 text-center transform transition-all scale-100 opacity-100">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Important Disclaimer</h2>
+            <p class="text-gray-600 mb-6">
+                This is an AI-powered legal information assistant, not a lawyer. The information provided is for educational purposes only and does not constitute legal advice. You must consult a qualified Malaysian lawyer for your specific situation.
+            </p>
+            <p class="text-sm text-gray-500 mb-6">
+                Please do not enter any personal or confidential information.
+            </p>
+            <button id="accept-disclaimer" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out">
+                I Understand and Agree
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Chat Interface -->
+    <div id="chat-interface" class="hidden w-full max-w-3xl h-full md:h-[90vh] md:max-h-[800px] bg-white rounded-2xl shadow-2xl flex flex-col transition-all duration-300 ease-in-out">
+        <!-- Header -->
+        <header class="bg-gray-50 p-4 border-b border-gray-200 rounded-t-2xl">
+            <h1 class="text-xl font-bold text-center text-gray-800">Malaysian Legal InfoBot</h1>
+            <p class="text-sm text-center text-gray-500">Focusing on Transportation Law</p>
+        </header>
+
+        <!-- Chat Container -->
+        <div id="chat-container" class="flex-1 p-6 overflow-y-auto">
+            <!-- Messages will be appended here -->
+            <div class="flex justify-start mb-4">
+                <div class="chat-bubble chat-bubble-bot rounded-lg p-3">
+                    <p>Hello! I am an AI assistant designed to provide general information on Malaysian transportation law. How can I help you today?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div id="typing-indicator" class="hidden px-6 pb-2">
+            <div class="flex items-center space-x-2">
+                <div class="chat-bubble chat-bubble-bot rounded-lg p-3">
+                    <div class="flex items-center justify-center space-x-1">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0s;"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <footer class="p-4 bg-white border-t border-gray-200 rounded-b-2xl">
+            <form id="chat-form" class="flex items-center space-x-3">
+                <input type="text" id="user-input" placeholder="Ask about Malaysian transport law..." class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition" autocomplete="off">
+                <button type="submit" id="send-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded-lg transition duration-300 ease-in-out disabled:bg-blue-300 disabled:cursor-not-allowed">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <script>
+        // --- Add this new constant at the top ---
+        // We'll run our Python server locally on port 8000 for testing.
+        // When you deploy, you'll change this to your Render/Railway URL.
+        const BACKEND_URL = 'http://127.0.0.1:8000';
+
+        const disclaimerModal = document.getElementById('disclaimer-modal');
+        const acceptButton = document.getElementById('accept-disclaimer');
+        const chatInterface = document.getElementById('chat-interface');
+        const chatContainer = document.getElementById('chat-container');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+
+        // --- Disclaimer Logic ---
+        acceptButton.addEventListener('click', () => {
+            disclaimerModal.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                disclaimerModal.classList.add('hidden');
+                chatInterface.classList.remove('hidden');
+            }, 300);
+        });
+
+        // --- Chat Logic (UPDATED) ---
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userMessage = userInput.value.trim();
+            if (userMessage) {
+                addMessage(userMessage, 'user');
+                userInput.value = '';
+                sendButton.disabled = true; // Disable button
+                showTypingIndicator();
+
+                // --- NEW: Backend API Call ---
+                try {
+                    const response = await fetch(`${BACKEND_URL}/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: userMessage }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const data = await response.json();
+                    
+                    hideTypingIndicator();
+                    addMessage(data.response, 'bot');
+
+                } catch (error) {
+                    console.error('Error fetching from backend:', error);
+                    hideTypingIndicator();
+                    addMessage("Sorry, I'm having trouble connecting to the server. Please try again later.", 'bot');
+                } finally {
+                    sendButton.disabled = false; // Re-enable button
+                }
+            }
+        });
+        
+        function addMessage(message, sender) {
+            const messageWrapper = document.createElement('div');
+            messageWrapper.classList.add('flex', 'mb-4');
+
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('chat-bubble', 'rounded-lg', 'p-3');
+            messageBubble.textContent = message;
+
+            if (sender === 'user') {
+                messageWrapper.classList.add('justify-end');
+                messageBubble.classList.add('chat-bubble-user');
+            } else {
+                messageWrapper.classList.add('justify-start');
+                messageBubble.classList.add('chat-bubble-bot');
+            }
+            
+            messageWrapper.appendChild(messageBubble);
+            chatContainer.appendChild(messageWrapper);
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll to bottom
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.classList.remove('hidden');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.classList.add('hidden');
+        }
+
+    </script>
+</body>
+</html>
+
