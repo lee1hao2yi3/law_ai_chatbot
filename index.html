@@ -95,7 +95,7 @@
 
             // --- THIS IS THE ONLY CHANGE ---
             // Use your new live Render URL
-            const chatUrl = 'https://9fa729b3aa0c.ngrok-free.app';
+            const chatUrl = 'https://9fa729b3aa0c.ngrok-free.app/chat'; // <-- This URL is different from the context
             // ---------------------------------
 
             // Show chat interface after accepting disclaimer
@@ -118,12 +118,12 @@
 
                 try {
                     // Send message to the backend
-                    const response = await fetch(chatUrl, {
+                    const response = await fetch(chatUrl, { // <-- This URL is different from the context
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ message: message }),
+                        body: JSON.stringify({ message: message }), // <-- Note: "message", not "prompt"
                     });
 
                     removeTypingIndicator();
@@ -206,3 +206,4 @@
     </script>
 </body>
 </html>
+
