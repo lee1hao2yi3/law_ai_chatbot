@@ -6,163 +6,201 @@
     <title>Malaysian Legal InfoBot</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        #chat-container::-webkit-scrollbar { width: 4px; }
-        #chat-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        #chat-container {
+            max-width: 800px;
+            height: 90vh;
+            max-height: 800px;
+        }
+        #chat-messages {
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+        }
+        .user-message {
+            animation: slideInRight 0.3s ease-out;
+        }
+        .bot-message {
+            animation: slideInLeft 0.3s ease-out;
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-    <div id="app-container" class="w-full max-w-2xl bg-white shadow-xl rounded-lg flex flex-col h-[70vh]">
-        <header class="bg-gray-800 text-white p-4 rounded-t-lg text-center">
-            <h1 class="text-xl font-bold">Malaysian Legal InfoBot</h1>
-            <p class="text-sm text-gray-300">Focusing on Transportation Law</p>
-        </header>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
-        <!-- Disclaimer Modal -->
-        <div id="disclaimer-modal" class="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-20">
-            <div class="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full">
-                <h2 class="text-xl font-bold mb-4">Important Disclaimer</h2>
-                <p class="text-gray-700 mb-4">
-                    This is an AI assistant providing general information on Malaysian law. It is **not** a lawyer and this is **not** legal advice.
-                </p>
-                <ul class="list-disc list-inside text-gray-600 mb-6 space-y-2">
-                    <li>Information may be incomplete or inaccurate.</li>
-                    <li>Do not use this for decisions with legal consequences.</li>
-                    <li>Always consult a qualified lawyer for your specific situation.</li>
-                    <li>Do not enter any personal or confidential information.</li>
-                </ul>
-                <button id="accept-disclaimer" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">
-                    I Understand and Accept
-                </button>
-            </div>
+    <!-- Disclaimer Modal -->
+    <div id="disclaimer-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-2xl p-6 md:p-8 max-w-md w-full animate-slideInLeft">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Disclaimer</h2>
+            <p class="text-gray-700 mb-6 text-sm md:text-base">
+                This is an AI legal information assistant, not a lawyer. Information provided may not be complete, accurate, or up-to-date.
+                This does not constitute legal advice. You must consult a qualified lawyer for your specific situation.
+                <br><br>
+                <strong>Do not enter any personal or confidential information.</strong>
+            </p>
+            <button id="accept-disclaimer" class="w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300">
+                I Understand and Accept
+            </button>
         </div>
+    </div>
 
-        <!-- Chat Container -->
-        <div id="chat-container" class="flex-1 p-4 overflow-y-auto space-y-4">
+    <!-- Chat Interface -->
+    <div id="chat-interface" class="bg-white rounded-2xl shadow-xl flex flex-col w-full max-w-3xl" style="height: 90vh; max-height: 800px; display: none;">
+        <!-- Header -->
+        <div class="border-b p-4">
+            <h1 class="text-xl md:text-2xl font-bold text-center text-gray-800">Malaysian Legal InfoBot</h1>
+            <p class="text-sm text-center text-gray-500">Focusing on Transportation Law</p>
+        </div>
+        
+        <!-- Messages -->
+        <div id="chat-messages" class="flex-1 p-4 md:p-6 space-y-4 overflow-y-auto">
             <!-- Initial Bot Message -->
-            <div class="flex justify-start">
-                <div class="bg-gray-200 text-gray-800 p-3 rounded-lg max-w-xs">
-                    Hello! I am an AI assistant designed to provide general information on Malaysian transportation law. How can I help you today?
+            <div class="bot-message flex">
+                <div class="bg-gray-200 text-gray-800 p-3 rounded-lg max-w-xs md:max-w-md">
+                    <p>Hello! I am an AI assistant designed to provide general information on Malaysian transportation law. How can I help you today?</p>
                 </div>
             </div>
-            <!-- Messages will be injected here -->
         </div>
-
+        
         <!-- Input Form -->
-        <form id="chat-form" class="p-4 border-t border-gray-200 flex space-x-2">
-            <input type="text" id="message-input" placeholder="Ask about traffic summons, accidents..." class="flex-1 border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-5 rounded-lg">Send</button>
-        </form>
+        <div class="p-4 md:p-6 border-t bg-gray-50 rounded-b-2xl">
+            <form id="chat-form" class="flex items-center space-x-3">
+                <input type="text" id="message-input" placeholder="Ask about traffic summons, accidents..." class="flex-1 border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="off">
+                <button type="submit" id="send-button" class="bg-blue-600 text-white font-semibold py-3 px-5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300">
+                    Send
+                </button>
+            </form>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const chatContainer = document.getElementById('chat-container');
+            const modal = document.getElementById('disclaimer-modal');
+            const chatInterface = document.getElementById('chat-interface');
+            const acceptButton = document.getElementById('accept-disclaimer');
             const chatForm = document.getElementById('chat-form');
             const messageInput = document.getElementById('message-input');
-            const disclaimerModal = document.getElementById('disclaimer-modal');
-            const acceptDisclaimerBtn = document.getElementById('accept-disclaimer');
-            const appContainer = document.getElementById('app-container');
+            const chatMessages = document.getElementById('chat-messages');
+            const sendButton = document.getElementById('send-button');
 
-            // --- IMPORTANT ---
-            // This is your public ngrok URL pointing to port 9999
-            const chatUrl = "https://9fa729b3aa0c.ngrok-free.app";
-            // -----------------
+            // --- THIS IS THE ONLY CHANGE ---
+            // Use your new live Render URL
+            const chatUrl = 'https://9fa729b3aa0c.ngrok-free.app';
+            // ---------------------------------
 
-            // Hide app and show modal
-            appContainer.style.visibility = 'hidden';
-
-            acceptDisclaimerBtn.addEventListener('click', () => {
-                disclaimerModal.style.display = 'none';
-                appContainer.style.visibility = 'visible';
+            // Show chat interface after accepting disclaimer
+            acceptButton.addEventListener('click', () => {
+                modal.style.display = 'none';
+                chatInterface.style.display = 'flex';
                 messageInput.focus();
             });
 
+            // Handle chat form submission
             chatForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const message = messageInput.value.trim();
                 if (!message) return;
 
+                // Add user message to chat
                 addMessageToChat('user', message);
                 messageInput.value = '';
-                showLoading(true);
+                showTypingIndicator();
 
                 try {
+                    // Send message to the backend
                     const response = await fetch(chatUrl, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ prompt: message })
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: message }),
                     });
 
-                    if (!response.ok) {
-                        // Handle non-200 responses by reading the error text
-                        const errorText = await response.text();
-                        console.error('Server error:', errorText);
-                        throw new Error(`Server responded with ${response.status}: ${errorText}`);
-                    }
+                    removeTypingIndicator();
 
-                    const data = await response.json();
-                    showLoading(false);
-                    addMessageToChat('bot', data.response);
+                    if (!response.ok) {
+                        // Handle server errors
+                        let errorMsg = `Server error: ${response.status}`;
+                        try {
+                            const errorData = await response.json();
+                            errorMsg = errorData.detail || errorMsg;
+                        } catch (err) {}
+                        
+                        // Handle Render free tier spin-down
+                        if(response.status === 503) {
+                            addMessageToChat('bot', 'The server is waking up... This may take up to 60 seconds. Please try sending your message again shortly.');
+                        } else {
+                            addMessageToChat('bot', `Sorry, an error occurred: ${errorMsg}`);
+                        }
+                    } else {
+                        // Add bot response to chat
+                        const data = await response.json();
+                        addMessageToChat('bot', data.response);
+                    }
 
                 } catch (error) {
+                    removeTypingIndicator();
                     console.error('Fetch error:', error);
-                    showLoading(false);
-                    // Check for specific "Method Not Allowed" to give a better hint
-                    if (error.message.includes("405") || error.message.includes("Method Not Allowed")) {
-                         addMessageToChat('bot', "Sorry, an error occurred: Method Not Allowed. (Please check if ngrok is pointing to the correct port).");
-                    } else {
-                         addMessageToChat('bot', "Sorry, I couldn't connect to the server. Please make sure your RPi server and ngrok are running.");
-                    }
+                    addMessageToChat('bot', 'Sorry, I couldn\'t connect to the server. Please check your connection or try again later.');
                 }
             });
 
-            function showLoading(isLoading) {
-                let loadingEl = document.getElementById('loading-bubble');
-                if (isLoading && !loadingEl) {
-                    const loadingBubble = document.createElement('div');
-                    loadingBubble.id = 'loading-bubble';
-                    loadingBubble.classList.add('flex', 'justify-start');
-                    loadingBubble.innerHTML = `
-                        <div class="bg-gray-200 text-gray-800 p-3 rounded-lg max-w-xs">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay: -0.3s;"></div>
-                                <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay: -0.15s;"></div>
-                                <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                            </div>
-                        </div>
-                    `;
-                    chatContainer.appendChild(loadingBubble);
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                } else if (!isLoading && loadingEl) {
-                    loadingEl.remove();
-                }
-            }
-
+            // Function to add a message to the chat UI
             function addMessageToChat(sender, text) {
-                const messageElement = document.createElement('div');
-                const bubble = document.createElement('div');
-                
-                bubble.classList.add('p-3', 'rounded-lg', 'max-w-xs', 'sm:max-w-md');
+                const messageDiv = document.createElement('div');
+                const bubbleDiv = document.createElement('div');
                 
                 if (sender === 'user') {
-                    messageElement.classList.add('flex', 'justify-end');
-                    bubble.classList.add('bg-blue-600', 'text-white');
-                    bubble.innerText = text; // User text as plain text
+                    messageDiv.className = 'user-message flex justify-end';
+                    bubbleDiv.className = 'bg-blue-600 text-white p-3 rounded-lg max-w-xs md:max-w-md';
                 } else {
-                    messageElement.classList.add('flex', 'justify-start');
-                    bubble.classList.add('bg-gray-200', 'text-gray-800');
-                    // Render bot text as HTML to allow for bolding (**)
-                    bubble.innerHTML = text
-                        .replace(/&/g, "&amp;")
-                        .replace(/</g, "&lt;")
-                        .replace(/>/g, "&gt;")
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    messageDiv.className = 'bot-message flex';
+                    bubbleDiv.className = 'bg-gray-200 text-gray-800 p-3 rounded-lg max-w-xs md:max-w-md';
                 }
                 
-                messageElement.appendChild(bubble);
-                chatContainer.appendChild(messageElement);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                // Format bot response (simple markdown-like bold)
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                bubbleDiv.innerHTML = `<p>${text.replace(/\n/g, '<br>')}</p>`;
+                
+                messageDiv.appendChild(bubbleDiv);
+                chatMessages.appendChild(messageDiv);
+                
+                // Scroll to the bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Function to show typing indicator
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.id = 'typing-indicator';
+                typingDiv.className = 'bot-message flex';
+                typingDiv.innerHTML = `
+                    <div class="bg-gray-200 text-gray-800 p-3 rounded-lg max-w-xs md:max-w-md">
+                        <p><i>Thinking...</i></p>
+                    </div>
+                `;
+                chatMessages.appendChild(typingDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                sendButton.disabled = true;
+            }
+
+            // Function to remove typing indicator
+            function removeTypingIndicator() {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+                sendButton.disabled = false;
             }
         });
     </script>
