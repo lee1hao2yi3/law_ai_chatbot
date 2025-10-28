@@ -8,4 +8,4 @@ faiss-cpu
 langchain-huggingface
 sentence-transformers
 pypdf
-langchain-community
+langchain_community
