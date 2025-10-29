@@ -105,15 +105,16 @@ app = FastAPI(lifespan=lifespan)
 
 # --- CORS Middleware ---
 # This is crucial for allowing your Vercel frontend to talk to your RPi backend
-#origins = [
-#    "http://localhost",
-#    "http://127.0.0.1",
-#    "null", # Allows local file:// access for testing
-#    "https://law-ai-chatbot-git-main-howies-projects-cbd15e17.vercel.app" # Your Vercel app
-#    "https://www.lawaichatbot.autobotlab.my"
-#]
+origins = [
+    "http://localhost",
+    "http://127.0.0.1",
+    "null",
+    "https://www.lawaichatbot.autobotlab.my",
+    "https://lawaichatbot.autobotlab.my",
+    "https://law-ai-chatbot.vercel.app"
+]
 
-origins = ["*"]
+# origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
