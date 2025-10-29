@@ -110,6 +110,7 @@ origins = [
     "http://127.0.0.1",
     "null", # Allows local file:// access for testing
     "https://law-ai-chatbot-git-main-howies-projects-cbd15e17.vercel.app" # Your Vercel app
+    "https://www.lawaichatbot.autobotlab.my"
 ]
 
 app.add_middleware(
